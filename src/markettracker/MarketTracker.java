@@ -5,8 +5,15 @@
  */
 package markettracker;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
+
+import org.json.*;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  *
@@ -16,14 +23,16 @@ public class MarketTracker extends javax.swing.JFrame {
 
     public static String currentIndex;
     public static String finhubAPIToken;
+    public static boolean trading;
     public static String[] algorithmList = {"Real-Time"};
-    
     
     /**
      * Creates new form RealtimeMarket
      */
     public MarketTracker() {
-        currentIndex = "DJI";
+        currentIndex = "^DJI";
+        finhubAPIToken="bq0l7m7rh5rddd65hvl0";
+        trading=false;
         
         initComponents();
     }
@@ -53,7 +62,6 @@ public class MarketTracker extends javax.swing.JFrame {
         currentIndexPrice = new javax.swing.JLabel();
         currentTimeLabel = new javax.swing.JLabel();
         currentTimeEST = new javax.swing.JLabel();
-        currentTimeUTC = new javax.swing.JLabel();
         tradingLabel = new javax.swing.JLabel();
         tradingStatus = new javax.swing.JLabel();
         topTrackerContainer = new javax.swing.JPanel();
@@ -62,8 +70,10 @@ public class MarketTracker extends javax.swing.JFrame {
         topTrackerPanel = new javax.swing.JPanel();
         topActualLabel = new javax.swing.JLabel();
         topProjectedLabel = new javax.swing.JLabel();
-        topProjected = new javax.swing.JLabel();
         topActual = new javax.swing.JLabel();
+        topDifferenceLabel = new javax.swing.JLabel();
+        topProjected = new javax.swing.JLabel();
+        topDifference = new javax.swing.JLabel();
         newsPanelContainer = new javax.swing.JPanel();
         newsLabel = new javax.swing.JLabel();
         midTrackerContainer = new javax.swing.JPanel();
@@ -74,6 +84,8 @@ public class MarketTracker extends javax.swing.JFrame {
         midActual = new javax.swing.JLabel();
         midActualLabel = new javax.swing.JLabel();
         midProjectedLabel = new javax.swing.JLabel();
+        midDifferenceLabel = new javax.swing.JLabel();
+        midDifference = new javax.swing.JLabel();
         botTrackerContainer = new javax.swing.JPanel();
         botAlgoPick = new javax.swing.JComboBox();
         botAlgoLabel = new javax.swing.JLabel();
@@ -82,12 +94,15 @@ public class MarketTracker extends javax.swing.JFrame {
         botProjectedLabel = new javax.swing.JLabel();
         botProjected = new javax.swing.JLabel();
         botActualLabel = new javax.swing.JLabel();
+        botDifferenceLabel = new javax.swing.JLabel();
+        botDifference = new javax.swing.JLabel();
         mainMenuBar = new javax.swing.JMenuBar();
         stockOption = new javax.swing.JMenu();
         changeIndexOption = new javax.swing.JMenu();
         DJIOption = new javax.swing.JRadioButtonMenuItem();
         NASOption = new javax.swing.JRadioButtonMenuItem();
         SNPOption = new javax.swing.JRadioButtonMenuItem();
+        updateOption = new javax.swing.JMenuItem();
         SettingsMenuItem = new javax.swing.JMenu();
         APIKeyMenuItem = new javax.swing.JMenuItem();
 
@@ -165,10 +180,6 @@ public class MarketTracker extends javax.swing.JFrame {
         currentTimeEST.setText("00:00 EST");
         optionsPanel.add(currentTimeEST, new org.netbeans.lib.awtextra.AbsoluteConstraints(1010, 10, -1, -1));
 
-        currentTimeUTC.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
-        currentTimeUTC.setText("04:00 UTC");
-        optionsPanel.add(currentTimeUTC, new org.netbeans.lib.awtextra.AbsoluteConstraints(1100, 10, -1, -1));
-
         tradingLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
         tradingLabel.setText("Trading: ");
         optionsPanel.add(tradingLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(910, 40, -1, -1));
@@ -183,6 +194,11 @@ public class MarketTracker extends javax.swing.JFrame {
         topTrackerContainer.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         topAlgoPick.setModel(getComboModel());
+        topAlgoPick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                topAlgoPickActionPerformed(evt);
+            }
+        });
         topTrackerContainer.add(topAlgoPick, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 40, 120, -1));
 
         topAlgoLabel.setForeground(new java.awt.Color(255, 255, 255));
@@ -204,17 +220,27 @@ public class MarketTracker extends javax.swing.JFrame {
         topProjectedLabel.setText("Projected:");
         topTrackerPanel.add(topProjectedLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 40, -1, -1));
 
-        topProjected.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        topProjected.setForeground(new java.awt.Color(0, 204, 0));
-        topProjected.setText("jLabel13");
-        topTrackerPanel.add(topProjected, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 40, -1, -1));
-        topProjected.getAccessibleContext().setAccessibleName("topProjected");
-
         topActual.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         topActual.setForeground(new java.awt.Color(0, 204, 0));
-        topActual.setText("jLabel13");
+        topActual.setText("00000.00");
         topTrackerPanel.add(topActual, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 10, -1, -1));
         topActual.getAccessibleContext().setAccessibleName("topActual");
+
+        topDifferenceLabel.setBackground(new java.awt.Color(255, 255, 255));
+        topDifferenceLabel.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        topDifferenceLabel.setForeground(new java.awt.Color(255, 255, 255));
+        topDifferenceLabel.setText("Difference:");
+        topTrackerPanel.add(topDifferenceLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 90, -1, -1));
+
+        topProjected.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        topProjected.setForeground(new java.awt.Color(0, 204, 0));
+        topProjected.setText("00000.00");
+        topTrackerPanel.add(topProjected, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 40, -1, -1));
+
+        topDifference.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        topDifference.setForeground(new java.awt.Color(0, 204, 0));
+        topDifference.setText("00000.00");
+        topTrackerPanel.add(topDifference, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 90, -1, -1));
 
         topTrackerContainer.add(topTrackerPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 10, 720, 120));
 
@@ -235,6 +261,11 @@ public class MarketTracker extends javax.swing.JFrame {
         midTrackerContainer.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         midAlgoPick.setModel(getComboModel());
+        midAlgoPick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                midAlgoPickActionPerformed(evt);
+            }
+        });
         midTrackerContainer.add(midAlgoPick, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 40, 120, -1));
 
         midAlgoLabel.setForeground(new java.awt.Color(255, 255, 255));
@@ -246,12 +277,12 @@ public class MarketTracker extends javax.swing.JFrame {
 
         midProjected.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         midProjected.setForeground(new java.awt.Color(0, 204, 0));
-        midProjected.setText("jLabel13");
+        midProjected.setText("00000.00");
         midTrackerPanel.add(midProjected, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 40, -1, -1));
 
         midActual.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         midActual.setForeground(new java.awt.Color(0, 204, 0));
-        midActual.setText("jLabel13");
+        midActual.setText("00000.00");
         midTrackerPanel.add(midActual, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 10, -1, -1));
 
         midActualLabel.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
@@ -266,6 +297,17 @@ public class MarketTracker extends javax.swing.JFrame {
         midProjectedLabel.setText("Projected:");
         midTrackerPanel.add(midProjectedLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 40, -1, -1));
 
+        midDifferenceLabel.setBackground(new java.awt.Color(255, 255, 255));
+        midDifferenceLabel.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        midDifferenceLabel.setForeground(new java.awt.Color(255, 255, 255));
+        midDifferenceLabel.setText("Difference:");
+        midTrackerPanel.add(midDifferenceLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 90, -1, -1));
+
+        midDifference.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        midDifference.setForeground(new java.awt.Color(0, 204, 0));
+        midDifference.setText("00000.00");
+        midTrackerPanel.add(midDifference, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 90, -1, -1));
+
         midTrackerContainer.add(midTrackerPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 10, 720, 120));
 
         mainPanelContainer.add(midTrackerContainer, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 240, 880, 140));
@@ -274,6 +316,11 @@ public class MarketTracker extends javax.swing.JFrame {
         botTrackerContainer.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         botAlgoPick.setModel(getComboModel());
+        botAlgoPick.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                botAlgoPickActionPerformed(evt);
+            }
+        });
         botTrackerContainer.add(botAlgoPick, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 40, 120, -1));
 
         botAlgoLabel.setForeground(new java.awt.Color(255, 255, 255));
@@ -285,7 +332,7 @@ public class MarketTracker extends javax.swing.JFrame {
 
         botActual.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         botActual.setForeground(new java.awt.Color(0, 204, 0));
-        botActual.setText("jLabel13");
+        botActual.setText("00000.00");
         botTrackerPanel.add(botActual, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 10, -1, -1));
 
         botProjectedLabel.setBackground(new java.awt.Color(255, 255, 255));
@@ -296,7 +343,7 @@ public class MarketTracker extends javax.swing.JFrame {
 
         botProjected.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         botProjected.setForeground(new java.awt.Color(0, 204, 0));
-        botProjected.setText("jLabel13");
+        botProjected.setText("00000.00");
         botTrackerPanel.add(botProjected, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 40, -1, -1));
 
         botActualLabel.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
@@ -304,6 +351,18 @@ public class MarketTracker extends javax.swing.JFrame {
         botActualLabel.setText("Actual:");
         botActualLabel.setToolTipText("");
         botTrackerPanel.add(botActualLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, -1, -1));
+
+        botDifferenceLabel.setBackground(new java.awt.Color(255, 255, 255));
+        botDifferenceLabel.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        botDifferenceLabel.setForeground(new java.awt.Color(255, 255, 255));
+        botDifferenceLabel.setText("Difference:");
+        botTrackerPanel.add(botDifferenceLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 90, -1, -1));
+
+        botDifference.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        botDifference.setForeground(new java.awt.Color(0, 204, 0));
+        botDifference.setText("00000.00");
+        botTrackerPanel.add(botDifference, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 90, -1, -1));
+        botDifference.getAccessibleContext().setAccessibleName("topProjected");
 
         botTrackerContainer.add(botTrackerPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 10, 720, 120));
 
@@ -345,6 +404,15 @@ public class MarketTracker extends javax.swing.JFrame {
 
         stockOption.add(changeIndexOption);
 
+        updateOption.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, java.awt.event.InputEvent.CTRL_MASK));
+        updateOption.setText("Force Update");
+        updateOption.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                updateOptionActionPerformed(evt);
+            }
+        });
+        stockOption.add(updateOption);
+
         mainMenuBar.add(stockOption);
 
         SettingsMenuItem.setText("Settings");
@@ -366,19 +434,25 @@ public class MarketTracker extends javax.swing.JFrame {
 
     private void DJIOptionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_DJIOptionActionPerformed
         currentIndexPick.setText("Dow Jones");
-        currentIndex = "DJI";
+        currentIndex = "^DJI";
+
+        updateDisplays();
     }//GEN-LAST:event_DJIOptionActionPerformed
 
     private void NASOptionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_NASOptionActionPerformed
         //System.out.println("Nasdaq");
         currentIndexPick.setText("Nasdaq");
-        currentIndex = "NAS";
+        currentIndex = "^IXIC";
+
+        updateDisplays();
     }//GEN-LAST:event_NASOptionActionPerformed
 
     private void SNPOptionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SNPOptionActionPerformed
         //System.out.println("S&P");
         currentIndexPick.setText("S&P 500");
-        currentIndex = "SNP";
+        currentIndex = "^GSPC";
+
+        updateDisplays();
     }//GEN-LAST:event_SNPOptionActionPerformed
 
     private void APIKeyMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_APIKeyMenuItemActionPerformed
@@ -399,9 +473,148 @@ public class MarketTracker extends javax.swing.JFrame {
         apiKeyDialog.setVisible(false);
     }//GEN-LAST:event_APICancelActionPerformed
 
+    private void updateOptionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateOptionActionPerformed
+        updateDisplays();
+    }//GEN-LAST:event_updateOptionActionPerformed
+
+    private void topAlgoPickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_topAlgoPickActionPerformed
+        updateDisplays();
+    }//GEN-LAST:event_topAlgoPickActionPerformed
+
+    private void midAlgoPickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_midAlgoPickActionPerformed
+        updateDisplays();
+    }//GEN-LAST:event_midAlgoPickActionPerformed
+
+    private void botAlgoPickActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botAlgoPickActionPerformed
+        updateDisplays();
+    }//GEN-LAST:event_botAlgoPickActionPerformed
+
+    
     private ComboBoxModel getComboModel()
     {
         return new DefaultComboBoxModel(algorithmList);
+    }
+    
+    public static void updateDisplays() {
+        String httpRequest;
+        String response="";
+
+        //Call time api here every 60 seconds
+        httpRequest = "http://worldtimeapi.org/api/timezone/America/New_York";
+        try {
+            response = sendGet(httpRequest);
+        } catch(Exception e) {
+            ;
+        }
+
+        JSONObject time = new JSONObject(response);
+        String currentTime = time.get("datetime").toString().substring(0, 16);
+        currentTimeEST.setText(currentTime + " EST");
+
+        //Determine if it is between 9am and 4pm
+        if(Integer.parseInt(currentTime.substring(11,13))>=9 && Integer.parseInt(currentTime.substring(11,13))<16) {
+           tradingStatus.setText("OPEN");
+        }
+        else {
+           tradingStatus.setText("CLOSED");
+        }
+
+        //Call news from api here every 60 seconds
+        //TODO
+
+        //Call different algorithms every 60 seconds
+        Algorithm rt = new Algorithm();
+        Algorithm a = new Algorithm();
+        Algorithm b = new Algorithm();
+        Algorithm c = new Algorithm();
+
+        rt.getRealtime();
+
+        String topop=(String)topAlgoPick.getSelectedItem();
+        String midop=(String)midAlgoPick.getSelectedItem();
+        String botop=(String)botAlgoPick.getSelectedItem();
+
+        ////////////////////////////////////////////////////
+        // This is where all the translation to which algorithm happens
+        ////////////////////////////////////////////////////
+        if(topop.equals("Real-Time")) {
+            a.getRealtime();
+        }
+        /*
+        Example for later
+        else if(
+            if(topop.equals("Random")) {
+            a.getRandom();
+        }
+        */
+
+        if(midop.equals("Real-Time")) {
+            b.getRealtime();
+        }
+        /*
+        Example for later
+        else if(
+            if(midop.equals("Random")) {
+            b.getRandom();
+        }
+        */
+
+        if(botop.equals("Real-Time")) {
+            c.getRealtime();
+        }
+        /*
+        Example for later
+        else if(
+            if(botop.equals("Random")) {
+            c.getRandom();
+        }
+        */
+        ////////////////////////////////////////////////////
+        // End algorithm translation
+        ////////////////////////////////////////////////////
+
+        //Set values of front end
+        currentIndexPrice.setText(Float.toString(rt.curIndexPrice));
+        topActual.setText(Float.toString(rt.curIndexPrice));
+        midActual.setText(Float.toString(rt.curIndexPrice));
+        botActual.setText(Float.toString(rt.curIndexPrice));
+
+        topProjected.setText(Float.toString(a.curIndexPrice));
+        midProjected.setText(Float.toString(b.curIndexPrice));
+        botProjected.setText(Float.toString(c.curIndexPrice));
+
+        topDifference.setText(Float.toString(a.curIndexPrice-rt.curIndexPrice));
+        midDifference.setText(Float.toString(b.curIndexPrice-rt.curIndexPrice));
+        botDifference.setText(Float.toString(c.curIndexPrice-rt.curIndexPrice));
+    }
+    
+    private static String sendGet(String url) throws Exception {
+        HttpURLConnection httpClient =
+                (HttpURLConnection) new URL(url).openConnection();
+
+        // optional default is GET
+        httpClient.setRequestMethod("GET");
+        httpClient.setRequestProperty("Content-Type", "text/xml; charset=utf-8");
+
+        int responseCode = httpClient.getResponseCode();
+        
+        //Check if response code is anything other than 200 and if so then pause for 10 seconds and create a dialog
+        //System.out.println(responseCode);
+        
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(httpClient.getInputStream()))) {
+
+            StringBuilder response = new StringBuilder();
+            String line;
+
+            while ((line = in.readLine()) != null) {
+                response.append(line);
+            }
+            
+            httpClient.disconnect();
+            
+            return response.toString();
+        }
+        
     }
     
     
@@ -440,8 +653,121 @@ public class MarketTracker extends javax.swing.JFrame {
             }
         });
         
-        
+        try {Thread.sleep(1000);} catch (InterruptedException ex) {;}
         //Put threaded operations here
+        //Call time api
+        //Make calls to algorithm functions if selected
+        //This loop will serve as the backend operations that fuel the frontend
+        for(int i=0; ; i++) {
+            String httpRequest;
+            String response="";
+            
+            //Call time api here every 60 seconds
+            httpRequest = "http://worldtimeapi.org/api/timezone/America/New_York";
+            try {
+                response = sendGet(httpRequest);
+            } catch(Exception e) {
+                ;
+            }
+            
+            JSONObject time = new JSONObject(response);
+            String currentTime = time.get("datetime").toString().substring(0, 20);
+            
+            currentTimeEST.setText(currentTime.substring(0,16) + " EST");
+            
+            //Determine if it is between 9am and 4pm
+            if(Integer.parseInt(currentTime.substring(11,13))>=9 && Integer.parseInt(currentTime.substring(11,13))<16) {
+               tradingStatus.setText("OPEN");
+               trading=true;
+            }
+            else {
+               tradingStatus.setText("CLOSED");
+               trading=false;
+            }
+           
+            //Call news from api here every 60 seconds
+            //TODO
+            
+            
+            //Call different algorithms every 60 seconds
+            Algorithm rt = new Algorithm();
+            Algorithm a = new Algorithm();
+            Algorithm b = new Algorithm();
+            Algorithm c = new Algorithm();
+
+            rt.getRealtime();
+
+            String topop=(String)topAlgoPick.getSelectedItem();
+            String midop=(String)midAlgoPick.getSelectedItem();
+            String botop=(String)botAlgoPick.getSelectedItem();
+            
+            if(topop.equals("Real-Time")) {
+                a.getRealtime();
+            }
+            if(midop.equals("Real-Time")) {
+                b.getRealtime();
+            }
+            if(botop.equals("Real-Time")) {
+                c.getRealtime();
+            }
+            
+            if(trading || i<1) {
+                ////////////////////////////////////////////////////
+                // This is where all the translation to which algorithm happens
+                ////////////////////////////////////////////////////
+                
+                /*
+                Example for later
+                else if(
+                    if(topop.equals("Random")) {
+                    a.getRandom();
+                }
+                */
+
+                
+                /*
+                Example for later
+                else if(
+                    if(midop.equals("Random")) {
+                    b.getRandom();
+                }
+                */
+
+                
+                /*
+                Example for later
+                else if(
+                    if(botop.equals("Random")) {
+                    c.getRandom();
+                }
+                */
+                ////////////////////////////////////////////////////
+                // End algorithm translation
+                ////////////////////////////////////////////////////
+            }
+            
+            //Set values of front end
+            currentIndexPrice.setText(Float.toString(rt.curIndexPrice));
+            topActual.setText(Float.toString(rt.curIndexPrice));
+            midActual.setText(Float.toString(rt.curIndexPrice));
+            botActual.setText(Float.toString(rt.curIndexPrice));
+            
+            topProjected.setText(Float.toString(a.curIndexPrice));
+            midProjected.setText(Float.toString(b.curIndexPrice));
+            botProjected.setText(Float.toString(c.curIndexPrice));
+            
+            topDifference.setText(Float.toString(a.curIndexPrice-rt.curIndexPrice));
+            midDifference.setText(Float.toString(b.curIndexPrice-rt.curIndexPrice));
+            botDifference.setText(Float.toString(c.curIndexPrice-rt.curIndexPrice));
+            
+            //Adjust for delay in api calls, gets called every 60 seconds
+            try {Thread.sleep((60-Integer.parseInt(currentTime.substring(17,19)))*1000);} catch (InterruptedException ex) {;}
+
+            
+            //Make sure overflow never occurs
+            if(i>=1000000) i=1;
+        }
+        
         
         
     }
@@ -458,11 +784,13 @@ public class MarketTracker extends javax.swing.JFrame {
     private javax.swing.JRadioButtonMenuItem SNPOption;
     private javax.swing.JMenu SettingsMenuItem;
     private javax.swing.JDialog apiKeyDialog;
-    private javax.swing.JLabel botActual;
+    private static javax.swing.JLabel botActual;
     private javax.swing.JLabel botActualLabel;
     private javax.swing.JLabel botAlgoLabel;
-    private javax.swing.JComboBox botAlgoPick;
-    private javax.swing.JLabel botProjected;
+    private static javax.swing.JComboBox botAlgoPick;
+    private static javax.swing.JLabel botDifference;
+    private javax.swing.JLabel botDifferenceLabel;
+    private static javax.swing.JLabel botProjected;
     private javax.swing.JLabel botProjectedLabel;
     private javax.swing.JPanel botTrackerContainer;
     private javax.swing.JPanel botTrackerPanel;
@@ -470,19 +798,20 @@ public class MarketTracker extends javax.swing.JFrame {
     private javax.swing.JLabel currentAPIKey;
     private javax.swing.JLabel currentIndexLabel;
     private javax.swing.JLabel currentIndexPick;
-    private javax.swing.JLabel currentIndexPrice;
+    private static javax.swing.JLabel currentIndexPrice;
     private javax.swing.JLabel currentIndexPriceLabel;
-    private javax.swing.JLabel currentTimeEST;
+    private static javax.swing.JLabel currentTimeEST;
     private javax.swing.JLabel currentTimeLabel;
-    private javax.swing.JLabel currentTimeUTC;
     private javax.swing.JLabel enterAPIKeyLabel;
     private javax.swing.JMenuBar mainMenuBar;
     private javax.swing.JPanel mainPanelContainer;
-    private javax.swing.JLabel midActual;
+    private static javax.swing.JLabel midActual;
     private javax.swing.JLabel midActualLabel;
     private javax.swing.JLabel midAlgoLabel;
-    private javax.swing.JComboBox midAlgoPick;
-    private javax.swing.JLabel midProjected;
+    private static javax.swing.JComboBox midAlgoPick;
+    private static javax.swing.JLabel midDifference;
+    private javax.swing.JLabel midDifferenceLabel;
+    private static javax.swing.JLabel midProjected;
     private javax.swing.JLabel midProjectedLabel;
     private javax.swing.JPanel midTrackerContainer;
     private javax.swing.JPanel midTrackerPanel;
@@ -490,15 +819,18 @@ public class MarketTracker extends javax.swing.JFrame {
     private javax.swing.JPanel newsPanelContainer;
     private javax.swing.JPanel optionsPanel;
     private javax.swing.JMenu stockOption;
-    private javax.swing.JLabel topActual;
+    private static javax.swing.JLabel topActual;
     private javax.swing.JLabel topActualLabel;
     private javax.swing.JLabel topAlgoLabel;
-    private javax.swing.JComboBox topAlgoPick;
-    private javax.swing.JLabel topProjected;
+    private static javax.swing.JComboBox topAlgoPick;
+    private static javax.swing.JLabel topDifference;
+    private javax.swing.JLabel topDifferenceLabel;
+    private static javax.swing.JLabel topProjected;
     private javax.swing.JLabel topProjectedLabel;
     private javax.swing.JPanel topTrackerContainer;
     private javax.swing.JPanel topTrackerPanel;
     private javax.swing.JLabel tradingLabel;
-    private javax.swing.JLabel tradingStatus;
+    private static javax.swing.JLabel tradingStatus;
+    private javax.swing.JMenuItem updateOption;
     // End of variables declaration//GEN-END:variables
 }
