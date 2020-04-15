@@ -51,6 +51,11 @@ public class MarketTracker extends javax.swing.JFrame {
         currentIndexPick = new javax.swing.JLabel();
         currentIndexPriceLabel = new javax.swing.JLabel();
         currentIndexPrice = new javax.swing.JLabel();
+        currentTimeLabel = new javax.swing.JLabel();
+        currentTimeEST = new javax.swing.JLabel();
+        currentTimeUTC = new javax.swing.JLabel();
+        tradingLabel = new javax.swing.JLabel();
+        tradingStatus = new javax.swing.JLabel();
         topTrackerContainer = new javax.swing.JPanel();
         topAlgoPick = new javax.swing.JComboBox();
         topAlgoLabel = new javax.swing.JLabel();
@@ -60,6 +65,7 @@ public class MarketTracker extends javax.swing.JFrame {
         topProjected = new javax.swing.JLabel();
         topActual = new javax.swing.JLabel();
         newsPanelContainer = new javax.swing.JPanel();
+        newsLabel = new javax.swing.JLabel();
         midTrackerContainer = new javax.swing.JPanel();
         midAlgoPick = new javax.swing.JComboBox();
         midAlgoLabel = new javax.swing.JLabel();
@@ -87,9 +93,7 @@ public class MarketTracker extends javax.swing.JFrame {
 
         apiKeyDialog.setTitle("API Key");
         apiKeyDialog.setAlwaysOnTop(true);
-        apiKeyDialog.setMaximumSize(new java.awt.Dimension(390, 200));
         apiKeyDialog.setMinimumSize(new java.awt.Dimension(390, 200));
-        apiKeyDialog.setPreferredSize(new java.awt.Dimension(390, 200));
         apiKeyDialog.setResizable(false);
         apiKeyDialog.setSize(new java.awt.Dimension(390, 200));
         apiKeyDialog.getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -137,21 +141,41 @@ public class MarketTracker extends javax.swing.JFrame {
 
         currentIndexLabel.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
         currentIndexLabel.setText("Current Index:");
-        optionsPanel.add(currentIndexLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 20, -1, -1));
+        optionsPanel.add(currentIndexLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 20, -1, -1));
 
         currentIndexPick.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
         currentIndexPick.setForeground(new java.awt.Color(0, 0, 255));
         currentIndexPick.setText("Dow Jones");
-        optionsPanel.add(currentIndexPick, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 20, -1, -1));
+        optionsPanel.add(currentIndexPick, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 20, -1, -1));
 
         currentIndexPriceLabel.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
         currentIndexPriceLabel.setText("Current Index Price:");
-        optionsPanel.add(currentIndexPriceLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(620, 20, -1, -1));
+        optionsPanel.add(currentIndexPriceLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(470, 20, -1, -1));
 
         currentIndexPrice.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
         currentIndexPrice.setForeground(new java.awt.Color(0, 0, 255));
         currentIndexPrice.setText("000000.00");
-        optionsPanel.add(currentIndexPrice, new org.netbeans.lib.awtextra.AbsoluteConstraints(850, 20, -1, -1));
+        optionsPanel.add(currentIndexPrice, new org.netbeans.lib.awtextra.AbsoluteConstraints(700, 20, -1, -1));
+
+        currentTimeLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        currentTimeLabel.setText("Current Time: ");
+        optionsPanel.add(currentTimeLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(910, 10, -1, -1));
+
+        currentTimeEST.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        currentTimeEST.setText("00:00 EST");
+        optionsPanel.add(currentTimeEST, new org.netbeans.lib.awtextra.AbsoluteConstraints(1010, 10, -1, -1));
+
+        currentTimeUTC.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        currentTimeUTC.setText("04:00 UTC");
+        optionsPanel.add(currentTimeUTC, new org.netbeans.lib.awtextra.AbsoluteConstraints(1100, 10, -1, -1));
+
+        tradingLabel.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        tradingLabel.setText("Trading: ");
+        optionsPanel.add(tradingLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(910, 40, -1, -1));
+
+        tradingStatus.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        tradingStatus.setText("CLOSED");
+        optionsPanel.add(tradingStatus, new org.netbeans.lib.awtextra.AbsoluteConstraints(1010, 40, -1, -1));
 
         mainPanelContainer.add(optionsPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1210, 80));
 
@@ -198,6 +222,12 @@ public class MarketTracker extends javax.swing.JFrame {
 
         newsPanelContainer.setBackground(new java.awt.Color(102, 102, 102));
         newsPanelContainer.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        newsLabel.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        newsLabel.setForeground(new java.awt.Color(255, 255, 255));
+        newsLabel.setText("News");
+        newsPanelContainer.add(newsLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, -1, -1));
+
         mainPanelContainer.add(newsPanelContainer, new org.netbeans.lib.awtextra.AbsoluteConstraints(900, 90, 300, 440));
 
         midTrackerContainer.setBackground(new java.awt.Color(102, 102, 102));
@@ -442,6 +472,9 @@ public class MarketTracker extends javax.swing.JFrame {
     private javax.swing.JLabel currentIndexPick;
     private javax.swing.JLabel currentIndexPrice;
     private javax.swing.JLabel currentIndexPriceLabel;
+    private javax.swing.JLabel currentTimeEST;
+    private javax.swing.JLabel currentTimeLabel;
+    private javax.swing.JLabel currentTimeUTC;
     private javax.swing.JLabel enterAPIKeyLabel;
     private javax.swing.JMenuBar mainMenuBar;
     private javax.swing.JPanel mainPanelContainer;
@@ -453,6 +486,7 @@ public class MarketTracker extends javax.swing.JFrame {
     private javax.swing.JLabel midProjectedLabel;
     private javax.swing.JPanel midTrackerContainer;
     private javax.swing.JPanel midTrackerPanel;
+    private javax.swing.JLabel newsLabel;
     private javax.swing.JPanel newsPanelContainer;
     private javax.swing.JPanel optionsPanel;
     private javax.swing.JMenu stockOption;
@@ -464,5 +498,7 @@ public class MarketTracker extends javax.swing.JFrame {
     private javax.swing.JLabel topProjectedLabel;
     private javax.swing.JPanel topTrackerContainer;
     private javax.swing.JPanel topTrackerPanel;
+    private javax.swing.JLabel tradingLabel;
+    private javax.swing.JLabel tradingStatus;
     // End of variables declaration//GEN-END:variables
 }
