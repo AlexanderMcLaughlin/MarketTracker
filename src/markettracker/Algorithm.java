@@ -53,7 +53,7 @@ public class Algorithm {
         int responseCode = httpClient.getResponseCode();
         
         //Check if response code is anything other than 200 and if so then pause for 10 seconds and create a dialog
-        if(responseCode!=200) System.out.println("Unable to update!");
+        if(responseCode!=200) MarketTracker.terminalWrite.setText("Error while calling API");
         
         try (BufferedReader in = new BufferedReader(new InputStreamReader(httpClient.getInputStream()))) {
 

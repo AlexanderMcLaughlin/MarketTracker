@@ -75,7 +75,9 @@ public class MarketTracker extends javax.swing.JFrame {
         topProjected = new javax.swing.JLabel();
         topDifference = new javax.swing.JLabel();
         newsPanelContainer = new javax.swing.JPanel();
-        newsLabel = new javax.swing.JLabel();
+        terminalLabel = new javax.swing.JLabel();
+        terminal = new javax.swing.JScrollPane();
+        terminalWrite = new javax.swing.JTextArea();
         midTrackerContainer = new javax.swing.JPanel();
         midAlgoPick = new javax.swing.JComboBox();
         midAlgoLabel = new javax.swing.JLabel();
@@ -249,10 +251,27 @@ public class MarketTracker extends javax.swing.JFrame {
         newsPanelContainer.setBackground(new java.awt.Color(102, 102, 102));
         newsPanelContainer.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        newsLabel.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
-        newsLabel.setForeground(new java.awt.Color(255, 255, 255));
-        newsLabel.setText("News");
-        newsPanelContainer.add(newsLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, -1, -1));
+        terminalLabel.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        terminalLabel.setForeground(new java.awt.Color(255, 255, 255));
+        terminalLabel.setText("Terminal");
+        terminalLabel.setToolTipText("");
+        newsPanelContainer.add(terminalLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, -1, -1));
+
+        terminal.setBackground(new java.awt.Color(0, 0, 0));
+        terminal.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        terminal.setEnabled(false);
+
+        terminalWrite.setBackground(new java.awt.Color(0, 0, 0));
+        terminalWrite.setColumns(20);
+        terminalWrite.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
+        terminalWrite.setForeground(new java.awt.Color(0, 204, 51));
+        terminalWrite.setLineWrap(true);
+        terminalWrite.setRows(5);
+        terminalWrite.setCaretColor(new java.awt.Color(51, 204, 0));
+        terminalWrite.setDisabledTextColor(new java.awt.Color(0, 204, 0));
+        terminal.setViewportView(terminalWrite);
+
+        newsPanelContainer.add(terminal, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 300, 400));
 
         mainPanelContainer.add(newsPanelContainer, new org.netbeans.lib.awtextra.AbsoluteConstraints(900, 90, 300, 440));
 
@@ -815,10 +834,12 @@ public class MarketTracker extends javax.swing.JFrame {
     private javax.swing.JLabel midProjectedLabel;
     private javax.swing.JPanel midTrackerContainer;
     private javax.swing.JPanel midTrackerPanel;
-    private javax.swing.JLabel newsLabel;
     private javax.swing.JPanel newsPanelContainer;
     private javax.swing.JPanel optionsPanel;
     private javax.swing.JMenu stockOption;
+    private javax.swing.JScrollPane terminal;
+    private javax.swing.JLabel terminalLabel;
+    public static javax.swing.JTextArea terminalWrite;
     private static javax.swing.JLabel topActual;
     private javax.swing.JLabel topActualLabel;
     private javax.swing.JLabel topAlgoLabel;
